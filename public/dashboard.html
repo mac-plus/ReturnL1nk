@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Seller Dashboard</title>
+</head>
+<body>
+<h1>Returns Dashboard</h1>
+<table id="returnsTable" border="1">
+  <thead>
+    <tr><th>Customer</th><th>Order ID</th><th>Status</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<script>
+fetch('/api/returns')
+  .then(res => res.json())
+  .then(data => {
+    const tbody = document.querySelector('#returnsTable tbody');
+    data.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.customer}</td><td>${r.orderId}</td><td>${r.status}</td>`;
+      tbody.appendChild(tr);
+    });
+  });
+</script>
+</body>
+</html>

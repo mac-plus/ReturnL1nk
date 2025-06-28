@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Return Submission</title>
+</head>
+<body>
+<h1>Return Submission</h1>
+<form id="returnForm" method="post" enctype="multipart/form-data">
+  <div>
+    <label>Product Photo: <input type="file" name="productPhoto" required></label>
+  </div>
+  <div>
+    <label>Inside Packaging Photo: <input type="file" name="packagePhoto" required></label>
+  </div>
+  <div>
+    <label>Shipping Label Photo: <input type="file" name="labelPhoto" required></label>
+  </div>
+  <div>
+    <label>Video (optional): <input type="file" name="video" accept="video/*"></label>
+  </div>
+  <div>
+    <label><input type="checkbox" name="confirmOriginal" required> I confirm this is the original item</label>
+  </div>
+  <button type="submit">Submit</button>
+</form>
+<script>
+const id = location.pathname.split('/').pop();
+document.getElementById('returnForm').action = '/api/upload/' + id;
+</script>
+</body>
+</html>

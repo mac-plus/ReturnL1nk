@@ -21,3 +21,9 @@ node server.js
 
 The server listens on `http://localhost:3000`. Open `/dashboard.html` to see all
 returns. Share `/return/<id>` links with customers to collect evidence.
+
+## Training the team
+
+An interactive ECS (Edge-Case Simulation) test board is available at
+`/ecs-training.html`. Use it to practice reviewing high-risk returns with
+scenario cards, checklists, and quiz prompts.

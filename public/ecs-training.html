@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive ECS Test - ReturnL1nk Training</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1f7cff;
+      --bg: #0f172a;
+      --card: #111827;
+      --muted: #cbd5e1;
+      --accent: #34d399;
+      --warning: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 15% 20%, rgba(52, 211, 153, 0.15), transparent 28%),
+                  radial-gradient(circle at 80% 10%, rgba(31, 124, 255, 0.2), transparent 32%),
+                  radial-gradient(circle at 50% 80%, rgba(251, 191, 36, 0.2), transparent 30%),
+                  var(--bg);
+      color: white;
+      min-height: 100vh;
+    }
+    header {
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+    }
+    .pill {
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    main {
+      padding: 0 24px 32px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 18px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 14px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      padding: 18px;
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+    .card p { color: var(--muted); margin: 6px 0; }
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      font-size: 13px;
+      margin-right: 6px;
+    }
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, #2563eb, #1f7cff);
+      color: white;
+      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.35);
+    }
+    .btn-primary:active { transform: translateY(1px); box-shadow: none; }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .stack { display: flex; flex-direction: column; gap: 10px; }
+    .scenario { background: rgba(255, 255, 255, 0.03); padding: 12px; border-radius: 12px; }
+    .scenario h3 { margin: 0 0 6px; }
+    .tag-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .question { padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); }
+    label { color: var(--muted); display: block; margin: 6px 0; }
+    input[type="checkbox"] { margin-right: 8px; }
+    .progress {
+      position: relative;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress span {
+      position: absolute;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      width: 0;
+      transition: width 0.25s ease;
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(52, 211, 153, 0.08);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      color: #a7f3d0;
+      font-weight: 600;
+    }
+    .status.warning {
+      background: rgba(251, 191, 36, 0.08);
+      border-color: rgba(251, 191, 36, 0.2);
+      color: #fef9c3;
+    }
+    .quiz-result {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(37, 99, 235, 0.08);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      color: #bfdbfe;
+      font-weight: 600;
+    }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="pill">Training / Edge-Case Simulation</div>
+      <h1>Interactive ECS Test</h1>
+      <p style="color: var(--muted); max-width: 700px; margin-top: 6px;">Use this sandbox to practice high-risk return reviews. Each ECS scenario combines a story, artifacts, and a decision checklist so teammates can rehearse before handling live customer cases.</p>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <button id="newScenario" class="btn btn-primary">Start New ECS Test</button>
+      <button id="resetBoard" class="btn btn-ghost">Reset</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="card" id="scenarioCard">
+      <h2>Scenario Brief</h2>
+      <div class="status warning" id="riskLevel">Awaiting selection</div>
+      <div class="scenario" style="margin-top: 12px;">
+        <div class="tag-group" id="tags"></div>
+        <h3 id="title">No scenario loaded</h3>
+        <p id="customer"></p>
+        <p id="summary"></p>
+      </div>
+      <div class="split" style="margin-top: 12px;">
+        <div>
+          <h3 style="margin: 8px 0;">Evidence Drops</h3>
+          <div id="evidenceList" class="stack"></div>
+        </div>
+        <div>
+          <h3 style="margin: 8px 0;">Required Checks</h3>
+          <div class="stack" id="checklist"></div>
+        </div>
+      </div>
+      <div style="margin-top: 14px;">
+        <h3 style="margin: 8px 0;">Case Notes</h3>
+        <textarea id="notes" rows="4" style="width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: white; padding: 10px; resize: vertical;" placeholder="Track your observations, blockers, and next actions."></textarea>
+      </div>
+    </section>
+
+    <section class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <h2>Decision Sandbox</h2>
+        <div class="status" id="progressLabel">0% complete</div>
+      </div>
+      <div class="progress" style="margin: 10px 0 16px;">
+        <span id="progressBar"></span>
+      </div>
+
+      <div id="quizZone" class="stack"></div>
+      <div id="result" class="quiz-result" style="display: none; margin-top: 12px;"></div>
+
+      <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+        <button id="gradeQuiz" class="btn btn-primary">Evaluate Decisions</button>
+        <button id="shuffleQuestions" class="btn btn-ghost">Shuffle Prompts</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const scenarios = [
+      {
+        title: 'Tamper suspected: serial mismatch',
+        customer: 'Rina Patel · Order #483201',
+        summary: 'Customer claims factory defect. Serial on returned unit differs from original manifest.',
+        tags: ['High risk', 'Electronics', 'Serial control'],
+        risk: 'High',
+        evidence: ['Product photo with scuffed seal', 'Packaging photo showing re-tape', 'Shipping label from return drop-off', 'Short clip of device powering on'],
+        checks: [
+          'Validate serial against order metadata and warranty start date',
+          'Ask for powered-on screen showing firmware build',
+          'Confirm photos are recent (EXIF / context timestamps)'
+        ],
+        quiz: [
+          {
+            question: 'How should you verify the serial discrepancy before rejecting the return?',
+            options: [
+              'Mark as rejected immediately because serials differ',
+              'Request a powered-on photo displaying the serial or IMEI and compare with shipping carton',
+              'Approve refund because hardware looks similar'
+            ],
+            answer: 1
+          },
+          {
+            question: 'Which follow-up keeps evidence anchored to the case?',
+            options: [
+              'Store agent notes only in a private notebook',
+              'Upload additional proof to the case and record timeline entries',
+              'Handle via chat and skip written record'
+            ],
+            answer: 1
+          }
+        ]
+      },
+      {
+        title: 'Return missing accessories',
+        customer: 'Diego Márquez · Order #517744',
+        summary: 'Refund requested for gaming headset. Microphone boom is missing from uploaded photos.',
+        tags: ['Medium risk', 'Missing part', 'Accessories'],
+        risk: 'Medium',
+        evidence: ['Front and side product angles', 'Close-up of accessory port', 'Drop-off receipt image'],
+        checks: [
+          'Confirm accessory checklist matches SKU contents',
+          'Ask for 360° photos showing all sides of packaging',
+          'Flag for partial refund path if accessory is absent'
+        ],
+        quiz: [
+          {
+            question: 'What is the best next step when an accessory is absent?',
+            options: [
+              'Proceed with full refund to avoid conflict',
+              'Request new photos highlighting the missing area and notify customer of partial refund policy',
+              'Ignore the missing accessory because it is low value'
+            ],
+            answer: 1
+          },
+          {
+            question: 'How can you avoid duplicate outreach?',
+            options: [
+              'Log a templated response and deadline inside the return case',
+              'Send SMS, email, and voicemail immediately',
+              'Wait for the customer to follow up again'
+            ],
+            answer: 0
+          }
+        ]
+      },
+      {
+        title: 'Box swap attempt',
+        customer: 'Chen Wei · Order #604233',
+        summary: 'Customer returned a heavier box than the outbound shipment and reports damaged contents.',
+        tags: ['High risk', 'Weight variance', 'Logistics'],
+        risk: 'High',
+        evidence: ['Photo of shipping scale reading', 'Return label photo', 'Inside-box photo with bubble wrap'],
+        checks: [
+          'Compare outbound vs inbound weight and flag variance >8%',
+          'Request evidence of inner packaging before approving',
+          'Escalate to manual audit if carrier weight differs from box content'
+        ],
+        quiz: [
+          {
+            question: 'How do you validate the weight discrepancy?',
+            options: [
+              'Use carrier weight events and compare with original fulfillment weight',
+              'Assume the heavier box means more protection',
+              'Discard weight data and only inspect photos'
+            ],
+            answer: 0
+          },
+          {
+            question: 'What outcome should you document if packaging shows rework?',
+            options: [
+              'Approve immediately to close the ticket',
+              'Document re-taping and request proof-of-purchase photo before refunding',
+              'Ignore because customer sounds trustworthy'
+            ],
+            answer: 1
+          }
+        ]
+      }
+    ];
+
+    let activeScenario = null;
+
+    const titleEl = document.getElementById('title');
+    const summaryEl = document.getElementById('summary');
+    const customerEl = document.getElementById('customer');
+    const evidenceList = document.getElementById('evidenceList');
+    const checklist = document.getElementById('checklist');
+    const riskLevel = document.getElementById('riskLevel');
+    const tagsEl = document.getElementById('tags');
+    const quizZone = document.getElementById('quizZone');
+    const resultEl = document.getElementById('result');
+    const progressBar = document.getElementById('progressBar');
+    const progressLabel = document.getElementById('progressLabel');
+
+    function renderScenario(scenario) {
+      activeScenario = scenario;
+      titleEl.textContent = scenario.title;
+      summaryEl.textContent = scenario.summary;
+      customerEl.textContent = scenario.customer;
+      riskLevel.textContent = `${scenario.risk} risk`;
+      riskLevel.className = scenario.risk === 'High' ? 'status warning' : 'status';
+
+      tagsEl.innerHTML = '';
+      scenario.tags.forEach(tag => {
+        const span = document.createElement('span');
+        span.className = 'badge';
+        span.textContent = tag;
+        tagsEl.appendChild(span);
+      });
+
+      evidenceList.innerHTML = '';
+      scenario.evidence.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'question';
+        card.innerHTML = `<strong>Artifact ${index + 1}:</strong> ${item}`;
+        evidenceList.appendChild(card);
+      });
+
+      checklist.innerHTML = '';
+      scenario.checks.forEach(step => {
+        const label = document.createElement('label');
+        label.innerHTML = `<input type="checkbox" class="check-item">${step}`;
+        checklist.appendChild(label);
+      });
+
+      buildQuiz(scenario.quiz);
+      updateProgress();
+      resultEl.style.display = 'none';
+    }
+
+    function buildQuiz(quiz) {
+      quizZone.innerHTML = '';
+      quiz.forEach((item, idx) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'question';
+        const header = document.createElement('strong');
+        header.textContent = `Prompt ${idx + 1}`;
+        const p = document.createElement('p');
+        p.style.margin = '6px 0 10px';
+        p.textContent = item.question;
+        wrapper.append(header, p);
+
+        item.options.forEach((option, optIdx) => {
+          const label = document.createElement('label');
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = `q-${idx}`;
+          input.value = optIdx;
+          label.prepend(input);
+          label.append(option);
+          wrapper.appendChild(label);
+        });
+        quizZone.appendChild(wrapper);
+      });
+    }
+
+    function updateProgress() {
+      const checkItems = document.querySelectorAll('.check-item');
+      const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+      const totalChecks = checkItems.length;
+      const totalQuestions = activeScenario ? activeScenario.quiz.length : 0;
+      const totalSteps = totalChecks + totalQuestions;
+      const completed = Array.from(checkItems).filter(c => c.checked).length + answered;
+      const percent = totalSteps ? Math.round((completed / totalSteps) * 100) : 0;
+      progressBar.style.width = `${percent}%`;
+      progressLabel.textContent = `${percent}% complete`;
+    }
+
+    function evaluate() {
+      if (!activeScenario) return;
+      const answers = activeScenario.quiz.map((item, idx) => {
+        const selected = document.querySelector(`input[name="q-${idx}"]:checked`);
+        return selected ? Number(selected.value) : null;
+      });
+      const missing = answers.filter(a => a === null).length;
+      const correct = answers.filter((a, idx) => a === activeScenario.quiz[idx].answer).length;
+      const checksComplete = document.querySelectorAll('.check-item:checked').length;
+      const totalChecks = document.querySelectorAll('.check-item').length;
+
+      let message = `You answered ${correct}/${activeScenario.quiz.length} prompts correctly.`;
+      if (missing) {
+        message += ` ${missing} prompt(s) still need a decision.`;
+      }
+      message += ` Checklist progress: ${checksComplete}/${totalChecks}.`;
+
+      resultEl.textContent = message;
+      resultEl.style.display = 'block';
+      updateProgress();
+    }
+
+    document.getElementById('newScenario').addEventListener('click', () => {
+      const pick = scenarios[Math.floor(Math.random() * scenarios.length)];
+      renderScenario(pick);
+    });
+
+    document.getElementById('resetBoard').addEventListener('click', () => {
+      activeScenario = null;
+      titleEl.textContent = 'No scenario loaded';
+      summaryEl.textContent = '';
+      customerEl.textContent = '';
+      riskLevel.textContent = 'Awaiting selection';
+      riskLevel.className = 'status warning';
+      evidenceList.innerHTML = '';
+      checklist.innerHTML = '';
+      quizZone.innerHTML = '';
+      resultEl.style.display = 'none';
+      progressBar.style.width = '0%';
+      progressLabel.textContent = '0% complete';
+      tagsEl.innerHTML = '';
+      document.getElementById('notes').value = '';
+    });
+
+    document.getElementById('gradeQuiz').addEventListener('click', evaluate);
+    document.getElementById('shuffleQuestions').addEventListener('click', () => {
+      if (!activeScenario) return;
+      const shuffled = [...activeScenario.quiz].sort(() => Math.random() - 0.5);
+      buildQuiz(shuffled);
+      updateProgress();
+    });
+
+    document.addEventListener('change', (e) => {
+      if (e.target.matches('.check-item') || e.target.type === 'radio') {
+        updateProgress();
+      }
+    });
+  </script>
+</body>
+</html>
